@@ -14,18 +14,29 @@ app.use(function (req,res,next){
     );
     next();
 });
-var port = process.env.PORT || 2410;
+const port=2410;
 app.listen(port,()=>console.log(`Listening on port ${port}!`));
 
-let {getConnection}=require("./mobDB.js");
+const {Client}=require("pg");
+const client=new Client({
+    user : "postgres",
+    password : "Sameem@1231231",
+    database : "postgres",
+    port:5432,
+    host : "db.ggajsarcsusyzmkuxqvf.supabase.co",
+    ssl:{ rejectUnauthorized: false},
+});
+ client.connect(function(res, error){
+        console.log(`Connected!!!`);
+    });
 
-
-app.get("/mobiles",function(req,res){
+app.get("/mobiles1",function (req,res,next){
+    console.log("Inside /mobiles1 get api");
     let brand=req.query.brand;
     let RAM=req.query.RAM;
     let ROM=req.query.ROM;
     let OS=req.query.OS;
-    let connection=getConnection();
+    
     let options="";
     let optionArr=[];
     if(brand){
@@ -46,20 +57,29 @@ app.get("/mobiles",function(req,res){
     }
    
    
-    let sql=`SELECT * FROM mobiles ${options}`;
-    connection.query(sql, optionArr,function(err,result){
-        if(err) res.status(404).send(err);
+    let sql=`SELECT * FROM mobiles1 ${options}`;
+    client.query(sql,optionArr,function(err,result){
+        console.log("query",sql)
+        console.log("result",client)
+        if(err) {
+            res.status(404).send(err);
+         
+        }
+
         else  {
           
-            res.send(result);
+            
+            res.send(result.rows);
+            client.end();
+           
         }
     })
 })
-app.get("/mobiles/:id",function(req,res){
+app.get("/mobiles1/:id",function(req,res){
     let id=+req.params.id;
-    let connection=getConnection();;
-    let sql="SELECT * FROM mobiles WHERE id=?";
-    connection.query(sql,id,function(err,result){
+   
+    let sql="SELECT * FROM mobiles1 WHERE id=?";
+    client.query(sql,id,function(err,result){
         if(err) res.status(404).send(err);
         else if(result.length===0)  res.status(404).send("No mobiles found");
        
@@ -68,11 +88,27 @@ app.get("/mobiles/:id",function(req,res){
       
     })
  });
-
-
-
- 
-app.post("/mobiles",function(req,res){
+app.post("/mobiles1",function(req,res,next){
+    console.log("Inside post of mobiles1");
+    var values=Object.values(req.body);
+    console.log(values);
+   
+    let query=`INSERT INTO mobiles1(name,price,brand,RAM,ROM,OS) VALUES($1,$2,$3,$4,$5,$6)`;
+   
+    client.query(query,values,function(err,result){
+        if(err) {  res.status(404).send(err);
+            console.log("query",result)
+    } 
+        else{
+            res.send(`Post success.Id of new mobile is ${result.insertId}`)
+            console.log("query",result)
+          
+        }
+    })
+})
+/*
+app.post("/mobiles",function(req,res,next){
+    //console.log("Inside post of user");
     let body=req.body;
     let connection=getConnection();
     let sql="INSERT INTO mobiles(name,price,brand,RAM,ROM,OS) VALUES(?,?,?,?,?,?)";
@@ -83,14 +119,14 @@ app.post("/mobiles",function(req,res){
     }
     })
 })
-
-app.put("/mobiles/:id", function(req,res){
+*/
+app.put("/mobiles1/:id", function(req,res){
     let id=+req.params.id;
     let body=req.body;
-    let connection=getConnection();
-    let sql="UPDATE mobiles SET name=?,price=?,brand=?,RAM=?,ROM=?,OS=? WHERE id=?";
+    
+    let sql="UPDATE mobiles1 SET name=?,price=?,brand=?,RAM=?,ROM=?,OS=? WHERE id=?";
     let params=[body.name,body.price,body.brand,body.RAM,body.ROM,body.OS,id];
-    connection.query(sql,params,function(err,result){
+    client.query(sql,params,function(err,result){
         if(err) res.status(404).send("Error in updating data");
         else if (result.affectedRows===0) res.status(404).send("No  update happened");
          else res.send("Update success")
@@ -98,12 +134,11 @@ app.put("/mobiles/:id", function(req,res){
  })
 
 
- app.delete("/mobiles/:id", function(req,res){
+ app.delete("/mobiles1/:id", function(req,res){
     let id=+req.params.id;
-    let connection=getConnection();
-    let sql="DELETE FROM mobiles WHERE id=?";
+    let sql="DELETE FROM mobiles1 WHERE id=?";
    
-    connection.query(sql,id,function(err,result){
+    client.query(sql,id,function(err,result){
         if(err) res.status(404).send("Error in deleting data");
         else if (result.affectedRows===0) res.status(404).send("No  delete happened");
          else res.send("delete success")

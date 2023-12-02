@@ -14,7 +14,7 @@ app.use(function (req,res,next){
     );
     next();
 });
-const port = process.env.PORT || 2410
+const port=2410;
 app.listen(port,()=>console.log(`Listening on port ${port}!`));
 
 const {Client}=require("pg");
@@ -23,7 +23,7 @@ const client=new Client({
     password : "Sameem@1231231",
     database : "postgres",
     port:5432,
-    host : "db.ggajsarcsusyzmkuxqvf.supabase.co",
+    host : "db.zywuwndohtsfwqsbcpvk.supabase.co",
     ssl:{ rejectUnauthorized: false},
 });
  client.connect(function(res, error){
@@ -32,115 +32,129 @@ const client=new Client({
 
 app.get("/mobiles1",function (req,res,next){
     console.log("Inside /mobiles1 get api");
-    let brand=req.query.brand;
-    let RAM=req.query.RAM;
-    let ROM=req.query.ROM;
-    let OS=req.query.OS;
-    
-    let options="";
+  let brand=req.query.brand;
+  let ram=req.query.ram;
+  let rom=req.query.rom;
+  let os=req.query.os
+    let options=``;
     let optionArr=[];
     if(brand){
-        options="WHERE brand=? ";
-        optionArr.push(brand);
+        options=`WHERE brand=\'${brand}\'`;
+        optionArr.push(`\'${brand}\'`);
+        
     }
-    if(RAM){
-        options=options?`${options} AND  RAM=? ` :" WHERE RAM=?";
-        optionArr.push(RAM);
+    if(ram){
+        options=options?`${options} AND  ram=\'${ram}\'` :` WHERE ram=\'${ram}\'`;
+        optionArr.push(`\'${ram}\'`);
+        
     }
-    if(ROM){
-        options=options?`${options} AND  ROM=? ` :" WHERE ROM=?";
-        optionArr.push(ROM);
+    if(rom){
+        options=options?`${options} AND  rom=\'${rom}\'` :` WHERE rom=\'${rom}\'`;
+        optionArr.push(`\'${rom}\'`);
+      
     }
-    if(OS){
-        options=options?`${options} AND  OS=? ` :" WHERE OS=?";
-        optionArr.push(OS);
-    }
-   
-   
-    let sql=`SELECT * FROM mobiles1 ${options}`;
-    client.query(sql,optionArr,function(err,result){
-        console.log("query",sql)
-        console.log("result",client)
-        if(err) {
-            res.status(404).send(err);
-         
-        }
-
-        else  {
-          
-            
-            res.send(result.rows);
-            client.end();
-           
-        }
-    })
-})
-app.get("/mobiles1/:id",function(req,res){
-    let id=+req.params.id;
-   
-    let sql="SELECT * FROM mobiles1 WHERE id=?";
-    client.query(sql,id,function(err,result){
-        if(err) res.status(404).send(err);
-        else if(result.length===0)  res.status(404).send("No mobiles found");
+    if(os){
+        options=options?`${options} AND  os=\'${os}\'` :`WHERE os=\'${os}\'`;
+        optionArr.push(`\'${os}\'`);
        
-             else res.send(result[0]);
+    }
+   
+    //let query=`SELECT * FROM mobiles1`;
+   let query=`SELECT * FROM mobiles1 ${options}`;
+    client.query(query,optionArr,function(err,result){
+     
+       client.query(query,function(err,result){
+        if(err) {
+            console.log(err)
+            res.status(404).send(err);}
+        else{
+            console.log(result)
+        res.send(result.rows);}
+        // client.end();
+    });
+});
+});
+
+/*app.get("/mobiles1",function(req,res,next){
+  console.log("Inside /mobile1 get api");
+    let sql="SELECT * FROM mobiles1";
+    client.query(sql,function(err,result){
+        if(err) {
+            console.log(err)
+            res.status(404).send(err);}
+        else{
+            console.log(result)
+        res.send(result.rows);}
+         client.end();
          
       
+    });
+ });*/
+app.get("/mobile1/:id",function(req,res,next){
+    let id=req.params.id;
+   
+    let sql=`SELECT * FROM mobiles1 WHERE id=${id}`;
+    client.query(sql,function(err,result){
+        if(err)
+        { res.status(404).send(err);}
+       
+       
+             else
+             { 
+                res.send(result.rows);
+               } //client.end();
     })
  });
-app.post("/mobiles1",function(req,res,next){
+app.post("/mobiles1", function(req,res, next){
     console.log("Inside post of mobiles1");
-    var values=Object.values(req.body);
-    console.log(values);
+   var values=Object.values(req.body);
+  console.log(values);
    
-    let query=`INSERT INTO mobiles1(name,price,brand,RAM,ROM,OS) VALUES($1,$2,$3,$4,$5,$6)`;
+    const query=`INSERT INTO mobiles1 (name,price,brand,ram,rom,os) VALUES ($1,$2,$3,$4,$5,$6)`;
    
-    client.query(query,values,function(err,result){
+    client.query(query,values, function(err,result){
         if(err) {  res.status(404).send(err);
-            console.log("query",result)
+            console.log("query",err)
     } 
         else{
-            res.send(`Post success.Id of new mobile is ${result.insertId}`)
-            console.log("query",result)
+            res.send(`posted row  ${result.rowCount}`);
+            
           
         }
     })
 })
-/*
-app.post("/mobiles",function(req,res,next){
-    //console.log("Inside post of user");
-    let body=req.body;
-    let connection=getConnection();
-    let sql="INSERT INTO mobiles(name,price,brand,RAM,ROM,OS) VALUES(?,?,?,?,?,?)";
-    connection.query(sql,[body.name,body.price,body.brand,body.RAM,body.ROM,body.OS],function(err,result){
-        if(err) res.status(404).send("Error in inserting data");
-        else{
-            res.send(`Post success.Id of new mobile is ${result.insertId}`);
-    }
-    })
-})
-*/
-app.put("/mobiles1/:id", function(req,res){
-    let id=+req.params.id;
-    let body=req.body;
+
+app.put("/mobile1/:id", function(req,res,next){
+    let id=req.params.id;
+    let name=req.body.name;
+    let price=req.body.price;
+    let brand=req.body.brand;
+   let ram=req.body.ram;
+    let rom=req.body.rom;
+    let os=req.body.os;
+   console.log("body",name)
+   
     
-    let sql="UPDATE mobiles1 SET name=?,price=?,brand=?,RAM=?,ROM=?,OS=? WHERE id=?";
-    let params=[body.name,body.price,body.brand,body.RAM,body.ROM,body.OS,id];
-    client.query(sql,params,function(err,result){
-        if(err) res.status(404).send("Error in updating data");
-        else if (result.affectedRows===0) res.status(404).send("No  update happened");
-         else res.send("Update success")
+    const sql=`UPDATE mobiles1 SET name=$1,price=$2,brand=$3,ram=$4,rom=$5,os=$6 WHERE id=$7`;
+    let values=[name,price,brand,ram,rom,os,id]
+   // let params=[body.name,body.price,body.brand,body.ram,body.rom,body.os,id];
+    client.query(sql,values,
+        function(err,result) {
+        if(err){ res.status(404).send(err);}
+        
+         else{ res.send( `${result.rowCount} Update success` )}
+        
     })
  })
 
 
- app.delete("/mobiles1/:id", function(req,res){
-    let id=+req.params.id;
-    let sql="DELETE FROM mobiles1 WHERE id=?";
+ app.delete("/mobile1/:id", function(req,res){
+    let id=req.params.id;
+    let sql=`DELETE FROM mobiles1 WHERE id=${id}`;
    
-    client.query(sql,id,function(err,result){
-        if(err) res.status(404).send("Error in deleting data");
-        else if (result.affectedRows===0) res.status(404).send("No  delete happened");
-         else res.send("delete success")
+    client.query(sql,function(err,result){
+        if(err) {res.status(404).send("Error in deleting data");}
+       
+         else {res.send("delete success")}
     })
  })

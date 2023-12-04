@@ -36,30 +36,79 @@ app.get("/mobiles1",function (req,res,next){
   let ram=req.query.ram;
   let rom=req.query.rom;
   let os=req.query.os
-    let options=``;
-    let optionArr=[];
+    let options="";
+    let optionArr='';
+    
     if(brand){
-        options=`WHERE brand=\'${brand}\'`;
-        optionArr.push(`\'${brand}\'`);
-        
-    }
+      
+        let brandArray=brand.split(",");
+      
+        options=`WHERE brand IN (\'${
+        brandArray.length==2
+        ?brand.substring(0,brandArray[0].length)+"\'"+","+"\'"+brandArray[1]
+        :brandArray.length==3
+        ?brand.substring(0,brandArray[0].length)+"\'"+","+"\'"+brandArray[1]+"\'"+","+"\'"+brandArray[2]
+        :brandArray.length==4
+        ?brand.substring(0,brandArray[0].length)+"\'"+","+"\'"+brandArray[1]+"\'"+","+"\'"+brandArray[2]+"\'"+","+"\'"+brandArray[3]
+        :brand}\')`;
+       
+        }
     if(ram){
-        options=options?`${options} AND  ram=\'${ram}\'` :` WHERE ram=\'${ram}\'`;
-        optionArr.push(`\'${ram}\'`);
-        
+        let ramArray=ram.split(",");
+        options=options?`${options} AND  ram IN (\'${
+            ramArray.length==2
+            ?ram.substring(0,ramArray[0].length)+"\'"+","+"\'"+ramArray[1]
+            :ramArray.length==3
+            ?ram.substring(0,ramArray[0].length)+"\'"+","+"\'"+ramArray[1]+"\'"+","+"\'"+ramArray[2]
+            :ramArray.length==4
+            ?ram.substring(0,ramArray[0].length)+"\'"+","+"\'"+ramArray[1]+"\'"+","+"\'"+ramArray[2]+"\'"+","+"\'"+ramArray[3]
+            :ram}\')` 
+            :`WHERE ram IN (\'${
+                ramArray.length==2
+                ?ram.substring(0,ramArray[0].length)+"\'"+","+"\'"+ramArray[1]
+                :ramArray.length==3
+                ?ram.substring(0,ramArray[0].length)+"\'"+","+"\'"+ramArray[1]+"\'"+","+"\'"+ramArray[2]
+                :ramArray.length==4
+                ?ram.substring(0,ramArray[0].length)+"\'"+","+"\'"+ramArray[1]+"\'"+","+"\'"+ramArray[2]+"\'"+","+"\'"+ramArray[3]
+                :ram}\')`;
+       // optionArr.push(`\'${ram.split(",")}\'`);
     }
     if(rom){
-        options=options?`${options} AND  rom=\'${rom}\'` :` WHERE rom=\'${rom}\'`;
-        optionArr.push(`\'${rom}\'`);
-      
+        let romArray=rom.split(",");
+        options=options?`${options}  AND  rom IN (\'${
+            romArray.length==2
+            ?rom.substring(0,romArray[0].length)+"\'"+","+"\'"+romArray[1]
+            :romArray.length==3
+            ?rom.substring(0,romArray[0].length)+"\'"+","+"\'"+romArray[1]+"\'"+","+"\'"+romArray[2]
+            :romArray.length==4
+            ?rom.substring(0,romArray[0].length)+"\'"+","+"\'"+romArray[1]+"\'"+","+"\'"+romArray[2]+"\'"+","+"\'"+romArray[3]
+            :rom}\')` 
+            :` WHERE rom IN (\'${
+                romArray.length==2
+                ?rom.substring(0,romArray[0].length)+"\'"+","+"\'"+romArray[1]
+                :romArray.length==3
+                ?rom.substring(0,romArray[0].length)+"\'"+","+"\'"+romArray[1]+"\'"+","+"\'"+romArray[2]
+                :romArray.length==4
+                ?rom.substring(0,romArray[0].length)+"\'"+","+"\'"+romArray[1]+"\'"+","+"\'"+romArray[2]+"\'"+","+"\'"+romArray[3]
+                :rom}\')`;
+        //optionArr.push(`\'${rom.split(",")}\'`);
     }
     if(os){
-        options=options?`${options} AND  os=\'${os}\'` :`WHERE os=\'${os}\'`;
-        optionArr.push(`\'${os}\'`);
-       
-    }
-   
+        let osArray=os.split(",");
+        options=options?`${options} AND  os IN (\'${
+            osArray.length==2
+            ?os.substring(0,osArray[0].length)+"\'"+","+"\'"+osArray[1]
+          
+            :brand}\')`
+         :`WHERE os IN (\'${
+            osArray.length==2
+            ?os.substring(0,osArray[0].length)+"\'"+","+"\'"+osArray[1]
+          
+            :os}\')`;
+       // optionArr.push(`\'${osArray}\'`);
+    
     //let query=`SELECT * FROM mobiles1`;
+}
    let query=`SELECT * FROM mobiles1 ${options}`;
     client.query(query,optionArr,function(err,result){
      
